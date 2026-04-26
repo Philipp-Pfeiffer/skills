@@ -176,7 +176,7 @@ Each departure object contains:
 **Rate limit errors?**
 - Add delays between requests
 - Use caching (consider `cached-hafas-client` wrapper)
-- Try a different profile (dbnav is more stable than db/dbweb)
+- Try a different profile (`db` is more stable for datacenter IPs, `dbnav` may block with 403)
 
 **Station not found?**
 - Use `locations()` to search for the station name and get the correct ID

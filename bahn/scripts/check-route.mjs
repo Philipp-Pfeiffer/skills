@@ -4,10 +4,10 @@
  */
 
 import { createClient } from 'db-vendo-client';
-import { profile as dbnavProfile } from 'db-vendo-client/p/dbnav/index.js';
+import { profile as dbProfile } from 'db-vendo-client/p/db/index.js';
 
 async function checkRoute() {
-  const client = createClient(dbnavProfile, 'clawdbot-bahn-skill');
+  const client = createClient(dbProfile, 'clawdbot-bahn-skill');
 
   console.log(`\n🚄 Berlin Hbf → München Hbf`);
   console.log(`Time: ${new Date().toLocaleString('de-DE')}\n`);

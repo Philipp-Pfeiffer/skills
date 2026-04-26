@@ -4,10 +4,10 @@
  */
 
 import { createClient } from 'db-vendo-client';
-import { profile as dbnavProfile } from 'db-vendo-client/p/dbnav/index.js';
+import { profile as dbProfile } from 'db-vendo-client/p/db/index.js';
 
 async function checkDelays(stationId, stationName) {
-  const client = createClient(dbnavProfile, 'clawdbot-bahn-skill');
+  const client = createClient(dbProfile, 'clawdbot-bahn-skill');
 
   console.log(`\n🚄 Checking departures for ${stationName}...`);
   console.log(`Station ID: ${stationId}`);

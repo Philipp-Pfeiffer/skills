@@ -4,11 +4,11 @@
  */
 
 import { createClient } from 'db-vendo-client';
-import { profile as dbnavProfile } from 'db-vendo-client/p/dbnav/index.js';
+import { profile as dbProfile } from 'db-vendo-client/p/db/index.js';
 import { data as cards } from 'db-vendo-client/format/loyalty-cards.js';
 
 async function checkPriceWithBahncard(fromId, fromName, toId, toName) {
-  const client = createClient(dbnavProfile, 'clawdbot-bahn-skill');
+  const client = createClient(dbProfile, 'clawdbot-bahn-skill');
 
   console.log(`\n💰 Checking prices: ${fromName} → ${toName}`);
   console.log(`Time: ${new Date().toLocaleString('de-DE')}\n`);
