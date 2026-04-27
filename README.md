@@ -8,6 +8,7 @@ Custom skills for [OpenClaw](https://openclaw.ai) / CLIFFFORD.
 |-------|-------------|
 | [bahn](bahn/) | Deutsche Bahn connections, delays, tickets via db-vendo-client |
 | [geo](geo/) | Geocoding, POI search, station lookup via OpenStreetMap |
+| [mensa-karlsruhe](mensa-karlsruhe/) | Meal plans for Studierendenwerk Karlsruhe canteens |
 | [notion-cli](notion-cli/) | Notion operations via notion-cli |
 
 ## Acknowledgements
@@ -26,4 +27,10 @@ Dependencies (bahn):
 
 ```bash
 cd ~/.openclaw/skills/bahn && npm install
+```
+
+Dependencies (mensa-karlsruhe):
+
+```bash
+pip install httpx
 ```

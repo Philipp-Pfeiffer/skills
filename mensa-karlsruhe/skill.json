@@ -1,0 +1,119 @@
+{
+  "name": "mensa-karlsruhe",
+  "description": "Access daily meal plans from Studierendenwerk Karlsruhe canteens. Use this skill to help users find what's being served at various university canteens (Mensen) in Karlsruhe, including prices, dietary options (vegetarian, vegan), and nutritional information.",
+  "commands": [
+    {
+      "command": "list_canteens",
+      "description": "Get a list of all available canteens with their IDs and names",
+      "examples": [
+        "Welche Mensen gibt es in Karlsruhe?",
+        "List all canteens"
+      ]
+    },
+    {
+      "command": "todays_meals",
+      "description": "Get today's meal plan, optionally filtered by canteen",
+      "parameters": [
+        {
+          "name": "canteens",
+          "type": "array",
+          "description": "Optional list of canteen IDs (e.g., ['adenauerring', 'moltke'])",
+          "default": null
+        }
+      ],
+      "examples": [
+        "Was gibt es heute in der Mensa?",
+        "What's on the menu today at Mensa Adenauerring?",
+        "Today's meals at Mensa Moltke"
+      ]
+    },
+    {
+      "command": "meals_by_date",
+      "description": "Get meal plan for a specific date",
+      "parameters": [
+        {
+          "name": "date",
+          "type": "string",
+          "description": "Date in YYYY-MM-DD format",
+          "required": true
+        },
+        {
+          "name": "canteens",
+          "type": "array",
+          "description": "Optional list of canteen IDs",
+          "default": null
+        }
+      ],
+      "examples": [
+        "Was gibt es morgen in der Mensa?",
+        "Menu for next Monday"
+      ]
+    },
+    {
+      "command": "search_meals",
+      "description": "Search for meals containing a keyword",
+      "parameters": [
+        {
+          "name": "query",
+          "type": "string",
+          "description": "Search term (e.g., 'vegetarisch', 'vegan', 'Pizza', 'Curry')",
+          "required": true
+        },
+        {
+          "name": "days",
+          "type": "integer",
+          "description": "Number of days to search ahead (default: 3, max: 7)",
+          "default": 3
+        }
+      ],
+      "examples": [
+        "Gibt es heute etwas Vegetarisches?",
+        "Find all vegan meals this week",
+        "Show me curry dishes"
+      ]
+    },
+    {
+      "command": "legend",
+      "description": "Get explanation of food additives and nutritional classifiers",
+      "parameters": [],
+      "examples": [
+        "Was bedeutet das 'VG' bei den Gerichten?",
+        "Explain food additives"
+      ]
+    }
+  ],
+  "canteen_ids": {
+    "adenauerring": "Mensa Am Adenauerring ( KIT Campus)",
+    "moltke": "Mensa Moltke",
+    "x1moltkestrasse": "Menseria Moltkestraße 30",
+    "erzberger": "Mensa Erzbergerstraße",
+    "gottesaue": "Menseria Schloss Gottesaue",
+    "tiefenbronner": "Mensa Tiefenbronnerstraße",
+    "holzgarten": "Mensa Holzgartenstraße"
+  },
+  "classifier_codes": {
+    "VG": "Vegetarisch",
+    "V": "Vegan",
+    "VEG": "Vegetarisch",
+    "G": "Geflügel",
+    "R": "Rind",
+    "S": "Schwein",
+    "F": "Fisch",
+    "L": "Lamm"
+  },
+  "prompt_templates": {
+    "daily_summary": "Gib mir eine Zusammenfassung des heutigen Essensangebots in der Mensa Am Adenauerring. Liste die Hauptgerichte mit Preisen auf.",
+    "vegetarian_options": "Finde alle vegetarischen Gerichte für heute und morgen.",
+    "cheapest_vegan": "Was ist das günstigste vegane Gericht heute?",
+    "specific_dish": "Gibt es heute etwas mit {ingredient}?",
+    "compare_canteens": "Vergleiche das Angebot der Mensa Moltke mit der Mensa am Adenauerring."
+  },
+  "api": {
+    "base_url": "https://mensa-api.fnka.de",
+    "endpoints": {
+      "canteens": "/canteens",
+      "plans": "/plans/{date}",
+      "legend": "/meta/legend"
+    }
+  }
+}
