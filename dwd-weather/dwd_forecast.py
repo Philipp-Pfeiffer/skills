@@ -152,16 +152,19 @@ def format_forecast(data: dict, hourly_count: int = 12) -> str:
         lines.append(f"  {date}: {tmin:.1f}° – {tmax:.1f}°C{rain_str}")
     
     lines.append("")
-    lines.append(f"⏰ Next {hourly_count} Hours:")
-    for h in data["hourly"][:hourly_count]:
+    # Filter to hours that actually have data (skip sentinel-filled early hours)
+    valid_hourly = [h for h in data["hourly"] if h["temperature_c"] is not None]
+    show_count = min(hourly_count, len(valid_hourly))
+    lines.append(f"⏰ Next {show_count} Hours:")
+    for h in valid_hourly[:hourly_count]:
         temp = h["temperature_c"]
         rain = h["rain_mm_h"]
         hum = h["humidity_pct"]
-        if temp is not None:
-            rain_str = f" | 🌧️ {rain:.1f}mm/h" if rain and rain > 0 else ""
-            lines.append(f"  +{h['hour']:2d}h: {temp:5.1f}°C | 💧 {hum:.0f}%{rain_str}")
-        else:
-            lines.append(f"  +{h['hour']:2d}h: —")
+        rain_str = ""
+        if rain is not None and rain > 0:
+            rain_str = f" | 🌧️ {rain:.1f}mm/h"
+        hum_str = f" | 💧 {hum:.0f}%" if hum is not None else ""
+        lines.append(f"  +{h['hour']:2d}h: {temp:5.1f}°C{hum_str}{rain_str}")
     
     return "\n".join(lines)
 
