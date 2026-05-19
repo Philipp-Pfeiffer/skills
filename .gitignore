@@ -1,2 +1,8 @@
-node_modules/
-bahn/node_modules/**
+__pycache__/
+*.py[cod]
+*$py.class
+.cache/
+.pytest_cache/
+*.egg-info/
+dist/
+build/
