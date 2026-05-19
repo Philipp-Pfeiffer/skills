@@ -179,7 +179,12 @@ Extract text with pdfplumber:
 
 ## Git Workflow
 
-Skills are typically maintained in a Git repository. After creating or updating a skill:
+Skills are typically maintained in a Git repository.
+
+**Primary repository for new skills**: `~/.openclaw/skills/` — Philipp's dedicated `skills` Git repository.  
+**Do not** place new skills into the workspace `skills/` directory; that directory is for local workspace overrides only and is not tracked by the skills repository.
+
+After creating or updating a skill:
 
 1. Review changes with `git diff`
 2. Stage the skill directory: `git add skill-name/`
@@ -223,7 +228,26 @@ Example: A `frontend-builder` skill might benefit from `assets/hello-world/` tem
 
 ### Step 3: Initializing the Skill
 
-Create a new skill directory with a required `SKILL.md` file and any optional resource directories. Create only directories you intend to populate.
+Create the skill in the **main skills repository** (`~/.openclaw/skills/`):
+
+```bash
+cd ~/.openclaw/skills/
+mkdir skill-name
+cd skill-name
+touch SKILL.md
+```
+
+Create any optional resource directories only if you intend to populate them:
+
+```
+skill-name/
+├── SKILL.md (required)
+├── scripts/ (optional)
+├── references/ (optional)
+└── assets/ (optional)
+```
+
+**Never** initialize new skills in the workspace `skills/` directory — those are ephemeral overrides, not the canonical source.
 
 ### Step 4: Edit the Skill
 

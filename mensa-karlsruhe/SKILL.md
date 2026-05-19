@@ -1,6 +1,6 @@
 ---
-name: mensa-karlsruhe
-description: "Access daily meal plans from Studierendenwerk Karlsruhe canteens. Use when users need to find current food offerings, search for vegetarian/vegan options, compare prices, or check meal plans at university canteens in Karlsruhe."
+name: mensa_karlsruhe
+description: Access daily meal plans from Studierendenwerk Karlsruhe canteens. Use when users need to find current food offerings, search for vegetarian/vegan options, compare prices, or check meal plans at university canteens in Karlsruhe.
 ---
 
 # Mensa Karlsruhe Skill für KI-Agenten
