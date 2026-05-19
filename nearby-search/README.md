@@ -15,7 +15,7 @@ python search.py <lat> <lon> "[Suchbegriff]" [Radius_in_m]
 Beispiele:
 ```bash
 python search.py 49.009 8.418 "Café" 1000
-python search.py 48.993 8.401 "Restaurant" 2000
+python search.py 49.009 8.418 "Restaurant" 2000
 python search.py 49.009 8.418 "Frühstück" 500
 ```
 
@@ -33,8 +33,8 @@ SERPAPI_KEY="dein-key-hier"
 ```json
 {
   "kit": {"lat": 49.009, "lon": 8.418, "label": "KIT Campus Süd"},
-  "home": {"lat": 48.992, "lon": 8.393, "label": "Zuhause"},
-  "arbeit": {"lat": 49.005, "lon": 8.410, "label": "Büro"}
+  "home": {"lat": 0.0, "lon": 0.0, "label": "Zuhause"},
+  "arbeit": {"lat": 0.0, "lon": 0.0, "label": "Büro"}
 }
 ```
 

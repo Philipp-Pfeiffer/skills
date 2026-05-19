@@ -45,7 +45,7 @@ target = https://ilias.studium.kit.edu/ilias.php?ref_id=XXXXXXX&cmdClass=ilrepos
 - ✅ PFERD installiert
 - ✅ Config erstellt
 - ✅ Wrapper-Script erstellt
-- ✅ Credentials (Philipp)
+- ✅ Credentials
 - ⏳ Erst-Test
 - ✅ Cron-Job (isolated + agentTurn + MiniMax, timeout 600s — gleiches Pattern wie Daily Wakeup)
 
@@ -57,12 +57,12 @@ target = https://ilias.studium.kit.edu/ilias.php?ref_id=XXXXXXX&cmdClass=ilrepos
   "sessionTarget": "isolated",
   "payload": {
     "kind": "agentTurn",
-    "message": "bash /home/p-pfeiffer/.openclaw/workspace/ilias-sync/scripts/sync.sh",
+    "message": "bash $HOME/.openclaw/workspace/ilias-sync/scripts/sync.sh",
     "model": "minimax/MiniMax-M2.7",
     "timeoutSeconds": 600,
     "toolsAllow": ["exec", "message"]
   },
-  "delivery": { "mode": "announce", "channel": "whatsapp", "to": "+4915110619636" }
+  "delivery": { "mode": "announce", "channel": "whatsapp", "to": "<deine-handynummer>" }
 }
 ```
 **Wichtig:** `timeoutSeconds: 600` (nicht 60). Zu kurze Timeouts bei MiniMax führen zu LLM request timeouts. Gleiches Pattern wie Daily Wakeup.

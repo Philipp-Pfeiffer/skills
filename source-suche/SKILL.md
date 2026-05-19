@@ -44,7 +44,7 @@ qmd collection show sources
 
 Erwartetes Ergebnis:
 - Collection `sources` existiert
-- `Path: /home/p-pfeiffer/.openclaw/workspace/sources`
+- `Path: $HOME/.openclaw/workspace/sources`
 - `Files: N` (N > 0 wenn Quellen vorhanden)
 
 Falls `sources` fehlt oder 0 Files trotz vorhandener Dateien:

@@ -45,7 +45,7 @@ Requires Node.js ≥ 22.
 ### Profile Setup (once)
 
 ```bash
-liver profile set --weight 78 --height 184 --sex m --age 22 [--formula watson]
+liver profile set --weight <kg> --height <cm> --sex <m/f/o> --age <jahre> [--formula watson]
 liver profile show
 ```
 

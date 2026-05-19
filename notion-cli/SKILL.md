@@ -200,10 +200,8 @@ ntn logout && ntn login     # Re-authenticate
 - Inline databases may have different IDs than parent pages. Use `search` to find the actual DB ID.
 - Piped JSON input yields raw API responses (pipe to `jq` for formatting).
 - `ntn api` auto-selects HTTP method: GET by default, POST when body data present, PATCH/DELETE via `-X`.
-- Workspace name: "Notion von P. Pfeiffer"
-- Known IDs:
-  - Agent Seite: `2fe7ba0f-6b14-8003-b2cc-cd8d8cce9f57`
-  - Rezepte DB: `7cc390d8-ad42-4943-a9a1-35b7dda02d9d`
+- Workspace name: "Notion Workspace"
+- Known IDs: (lokal in `~/.config/notion/ids` hinterlegt)
 - Legacy `notion-cli` (github.com/4ier/notion-cli) is kept as fallback but `ntn` is preferred.
 
 ## Shell completions

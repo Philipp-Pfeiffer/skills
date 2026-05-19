@@ -7,7 +7,7 @@ description: "Nutze die Kimi CLI (kimi) für Boilerplate-Code-Generierung. Ausl�
 
 ## Basics
 
-Kimi CLI ist auf **Tomate** installiert unter `/home/p-pfeiffer/.local/bin/kimi` (Alias: `kimi`).
+Kimi CLI ist installiert unter `$HOME/.local/bin/kimi` (Alias: `kimi`).
 
 ```bash
 kimi [OPTIONS]
@@ -59,7 +59,7 @@ ls -la /pfad/zum/projekt
 ## Wann nicht Kimi nutzen
 
 - Komplexe Architektur-Entscheidungen → eigenes Reasoning
-- Code, der Philipp's existierende Projekte betrifft → erst nach Absprache
+- Code, der eigene existierende Projekte betrifft → erst nach Absprache
 - Lange Multistep-Änderungen → lieber selbst schreiben
 
 ## Beispiel: Python CLI Boilerplate
