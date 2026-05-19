@@ -8,5 +8,7 @@ dist/
 build/
 
 # Untracked skills (kept locally, not in repo)
-excel-xlsx/
-git/
+kami/
+minimax-cli/
+self-improving/
+session-logs/
