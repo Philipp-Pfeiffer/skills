@@ -6,6 +6,28 @@ from datetime import datetime, timezone
 API_BASE = "https://app-prod-ws.warnwetter.de/v30"
 WARNINGS_BASE = "https://s3.eu-central-1.amazonaws.com/app-prod-static.warnwetter.de/v16"
 
+# DWD uses these sentinel values for "no data"
+SENTINEL_VALUES = {32767, -32768, -32767, -999}
+
+
+def _clean_value(value, divisor=10):
+    """Convert raw API value to usable float, treating sentinels as None."""
+    if value is None:
+        return None
+    if value in SENTINEL_VALUES:
+        return None
+    return value / divisor
+
+
+def _clean_int(value):
+    """Convert raw API int value, treating sentinels as None."""
+    if value is None:
+        return None
+    if value in SENTINEL_VALUES:
+        return None
+    return value
+
+
 import gzip
 
 def _fetch_json(url: str, timeout: int = 30) -> dict:
@@ -56,12 +78,12 @@ def get_forecast(station_id: str) -> dict:
         entry = {
             "hour": i,
             "datetime": (start_dt.replace(tzinfo=None) if i == 0 else None),
-            "temperature_c": temps[i] / 10 if i < len(temps) else None,
-            "rain_mm_h": rain[i] / 10 if i < len(rain) else None,
-            "humidity_pct": hum[i] / 10 if i < len(hum) else None,
-            "dewpoint_c": dew[i] / 10 if i < len(dew) else None,
-            "pressure_hpa": pressure[i] / 10 if i < len(pressure) else None,
-            "icon": icons[i] if i < len(icons) else None,
+            "temperature_c": _clean_value(temps[i]) if i < len(temps) else None,
+            "rain_mm_h": _clean_value(rain[i]) if i < len(rain) else None,
+            "humidity_pct": _clean_value(hum[i]) if i < len(hum) else None,
+            "dewpoint_c": _clean_value(dew[i]) if i < len(dew) else None,
+            "pressure_hpa": _clean_value(pressure[i]) if i < len(pressure) else None,
+            "icon": _clean_int(icons[i]) if i < len(icons) else None,
         }
         hourly.append(entry)
     
@@ -70,14 +92,14 @@ def get_forecast(station_id: str) -> dict:
     for day in days:
         daily.append({
             "date": day.get("dayDate"),
-            "temp_max_c": day.get("temperatureMax", 0) / 10,
-            "temp_min_c": day.get("temperatureMin", 0) / 10,
-            "precipitation_mm": day.get("precipitation", 0) / 10,
-            "sunshine_min": day.get("sunshine", 0) / 10,
-            "wind_speed_kmh": day.get("windSpeed", 0) / 10 if day.get("windSpeed") else None,
-            "wind_gust_kmh": day.get("windGust", 0) / 10 if day.get("windGust") else None,
-            "wind_direction": day.get("windDirection"),
-            "icon": day.get("icon"),
+            "temp_max_c": _clean_value(day.get("temperatureMax", 0)),
+            "temp_min_c": _clean_value(day.get("temperatureMin", 0)),
+            "precipitation_mm": _clean_value(day.get("precipitation", 0)),
+            "sunshine_min": _clean_value(day.get("sunshine", 0)),
+            "wind_speed_kmh": _clean_value(day.get("windSpeed")),
+            "wind_gust_kmh": _clean_value(day.get("windGust")),
+            "wind_direction": _clean_int(day.get("windDirection")),
+            "icon": _clean_int(day.get("icon")),
         })
     
     return {
@@ -138,6 +160,8 @@ def format_forecast(data: dict, hourly_count: int = 12) -> str:
         if temp is not None:
             rain_str = f" | 🌧️ {rain:.1f}mm/h" if rain and rain > 0 else ""
             lines.append(f"  +{h['hour']:2d}h: {temp:5.1f}°C | 💧 {hum:.0f}%{rain_str}")
+        else:
+            lines.append(f"  +{h['hour']:2d}h: —")
     
     return "\n".join(lines)
 

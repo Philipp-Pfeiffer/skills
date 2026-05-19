@@ -30,15 +30,25 @@ Get weather forecasts and warnings for Germany via the Deutscher Wetterdienst (D
 ## Commands
 
 ### Forecast
+
+You can pass a **city name** or a **station ID**:
+
 ```bash
-# 10-day forecast for a station
+# By city name — auto-resolved to nearest MOSMIX station
+python3 dwd_weather.py forecast Karlsruhe
+python3 dwd_weather.py forecast "Beiertheim"
+python3 dwd_weather.py forecast Buxtehude
+
+# By station ID directly
 python3 dwd_weather.py forecast 10865
+python3 dwd_weather.py forecast G005
 
 # With custom hourly window
-python3 dwd_weather.py forecast G005 --hourly 24
+python3 dwd_weather.py forecast Karlsruhe --hourly 24
 ```
 
 ### Warnings
+
 ```bash
 # All current warnings
 python3 dwd_weather.py warnings
@@ -50,28 +60,30 @@ python3 dwd_weather.py warnings --type coast      # coastal
 ```
 
 ### Station Lookup
+
 ```bash
-# Search stations by name
+# Search MOSMIX stations by name
 python3 dwd_weather.py stations search Karlsruhe
+
+# Resolve any location to the nearest MOSMIX station
+python3 dwd_weather.py stations resolve Beiertheim
 
 # Find nearest station to coordinates
 python3 dwd_weather.py stations nearest --lat 49.0373 --lon 8.3637
 
-# Get station details
+# Get station details by ID
 python3 dwd_weather.py stations get 10865
-
-# Refresh station cache
-python3 dwd_weather.py stations refresh
 ```
 
-## Known Working Stations
+## How Location Resolution Works
 
-| ID | Location |
-|---|---|
-| 10865 | Berlin-Tegel |
-| G005 | Berlin |
+The skill uses a three-tier lookup:
 
-> ⚠️ **Note:** Not all DWD climate stations work with the WarnWetter app API. The API uses MOSMIX grid points, which have different IDs than the climate stations. Use the `stations` commands to find nearby stations, then test with `forecast` to verify compatibility.
+1. **Direct station ID** — if the input looks like a MOSMIX ID (2–8 alphanumeric chars), it's used directly.
+2. **Name search** — fuzzy matching against all ~6000 MOSMIX stations (handles umlauts: Köln → KOELN).
+3. **Geocoding fallback** — uses Nominatim (OpenStreetMap) to get coordinates, then finds the nearest MOSMIX station.
+
+All ~6000 MOSMIX stations are bundled in `mosmix_stations.json` (extracted from the official DWD KMZ).
 
 ## API Endpoints
 
@@ -97,8 +109,8 @@ pip install -r requirements.txt
 
 ```bash
 # Unit tests (no network)
-pytest -m "not network"
+python3 tests/test_dwd_weather.py
 
 # Integration tests (requires network)
-pytest -m network
+python3 -c "import pytest; pytest.main(['-m', 'network', 'tests/test_dwd_weather.py'])"
 ```
