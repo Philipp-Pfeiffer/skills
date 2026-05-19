@@ -8,6 +8,10 @@ import urllib.parse
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 MOSMIX_STATIONS_PATH = os.path.join(SCRIPT_DIR, "mosmix_stations.json")
 
+# Persistent cache for resolved locations
+CACHE_DIR = os.path.expanduser("~/.cache/dwd-weather")
+STATION_CACHE_FILE = os.path.join(CACHE_DIR, "station_cache.json")
+
 # WarnWetter API known working stations (manual overrides / confirmations)
 KNOWN_WORKING_STATIONS = {
     "10865": {"name": "Berlin-Tegel", "lat": 52.5597, "lon": 13.2877},
@@ -15,6 +19,33 @@ KNOWN_WORKING_STATIONS = {
     "10727": {"name": "Karlsruhe", "lat": 49.03, "lon": 8.37},
     "Q208": {"name": "Karlsruhe", "lat": 49.0, "lon": 8.45},
 }
+
+
+def _ensure_cache_dir():
+    os.makedirs(CACHE_DIR, exist_ok=True)
+
+
+def _load_station_cache() -> dict:
+    """Load persistent station cache."""
+    if os.path.exists(STATION_CACHE_FILE):
+        try:
+            with open(STATION_CACHE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return {}
+    return {}
+
+
+def _save_station_cache(cache: dict):
+    """Save persistent station cache."""
+    _ensure_cache_dir()
+    with open(STATION_CACHE_FILE, "w", encoding="utf-8") as f:
+        json.dump(cache, f, ensure_ascii=False, indent=2)
+
+
+def _cache_key(query: str) -> str:
+    """Normalize a query into a cache key."""
+    return _normalize(query)
 
 
 def _load_stations() -> list[dict]:
@@ -159,10 +190,32 @@ def geocode_location(query: str, country: str = "Germany") -> dict:
     return None
 
 
+def _cache_entry(result: dict) -> dict:
+    """Create a minimal cacheable dict from a resolve result."""
+    return {
+        "id": result["id"],
+        "name": result["name"],
+        "lat": result["lat"],
+        "lon": result["lon"],
+        "elevation": result.get("elevation"),
+        "matched_by": result.get("matched_by"),
+        "geocoded_name": result.get("geocoded_name"),
+        "distance_km": result.get("distance_km", 0.0),
+    }
+
+
+def clear_station_cache():
+    """Clear the persistent station cache."""
+    _ensure_cache_dir()
+    if os.path.exists(STATION_CACHE_FILE):
+        os.remove(STATION_CACHE_FILE)
+
+
 def resolve_location(query: str) -> dict:
     """Resolve any location query to a MOSMIX station.
 
     Strategy:
+    0. Check persistent cache (instant for repeated queries).
     1. If query looks like a station ID (alphanumeric, 2-8 chars), try direct ID lookup.
     2. Search MOSMIX station names by substring.
     3. If no direct match, geocode via Nominatim and find nearest MOSMIX station.
@@ -174,11 +227,19 @@ def resolve_location(query: str) -> dict:
     query = query.strip()
     q_lower = query.lower()
 
+    # 0. Check persistent cache
+    cache = _load_station_cache()
+    key = _cache_key(query)
+    if key in cache:
+        return cache[key]
+
+    result = None
+
     # 1. Direct ID lookup (station IDs are typically 2-8 alphanumeric chars)
     if 2 <= len(query) <= 8 and query.replace("-", "").isalnum():
         s = get_station_by_id(query)
         if s:
-            return {
+            result = {
                 **s,
                 "matched_by": "id",
                 "geocoded_name": None,
@@ -186,35 +247,43 @@ def resolve_location(query: str) -> dict:
             }
 
     # 2. Name search in MOSMIX stations
-    results = search_stations(query)
-    if results:
-        # Prefer exact match, then shortest name (most specific)
-        exact = [r for r in results if r["name"].lower() == q_lower]
-        if exact:
-            best = exact[0]
-        else:
-            # Sort by name length (shorter = more likely exact city name)
-            best = sorted(results, key=lambda r: len(r["name"]))[0]
-        return {
-            **best,
-            "matched_by": "name",
-            "geocoded_name": None,
-            "distance_km": 0.0,
-        }
-
-    # 3. Fallback: geocode via Nominatim, then find nearest station
-    geo = geocode_location(query)
-    if geo:
-        nearest = find_nearest_station(geo["lat"], geo["lon"])
-        if nearest:
-            return {
-                **nearest,
-                "matched_by": "geocode",
-                "geocoded_name": geo["display_name"],
-                "distance_km": nearest["distance_km"],
+    if result is None:
+        results = search_stations(query)
+        if results:
+            # Prefer exact match, then shortest name (most specific)
+            exact = [r for r in results if r["name"].lower() == q_lower]
+            if exact:
+                best = exact[0]
+            else:
+                # Sort by name length (shorter = more likely exact city name)
+                best = sorted(results, key=lambda r: len(r["name"]))[0]
+            result = {
+                **best,
+                "matched_by": "name",
+                "geocoded_name": None,
+                "distance_km": 0.0,
             }
 
-    return None
+    # 3. Fallback: geocode via Nominatim, then find nearest station
+    if result is None:
+        geo = geocode_location(query)
+        if geo:
+            nearest = find_nearest_station(geo["lat"], geo["lon"])
+            if nearest:
+                result = {
+                    **nearest,
+                    "matched_by": "geocode",
+                    "geocoded_name": geo["display_name"],
+                    "distance_km": nearest["distance_km"],
+                }
+
+    if result is None:
+        return None
+
+    # Persist in cache
+    cache[key] = _cache_entry(result)
+    _save_station_cache(cache)
+    return result
 
 
 if __name__ == "__main__":

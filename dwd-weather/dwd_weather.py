@@ -11,6 +11,7 @@ from dwd_stations import (
     search_stations,
     find_nearest_station,
     get_stations,
+    clear_station_cache,
 )
 from dwd_forecast import get_forecast, get_warnings, format_forecast, format_warnings
 
@@ -101,6 +102,10 @@ def cmd_stations(args):
             )
         else:
             print(f"Could not resolve: {args.query}")
+    elif args.action == "refresh":
+        print("Clearing station resolution cache...")
+        clear_station_cache()
+        print("Done.")
     else:
         print(f"Unknown action: {args.action}")
 
@@ -144,7 +149,7 @@ def main():
     )
     p_stations.add_argument(
         "action",
-        choices=["search", "nearest", "get", "resolve"],
+        choices=["search", "nearest", "get", "resolve", "refresh"],
         help="Action to perform",
     )
     p_stations.add_argument("query", nargs="?", help="Search query (for 'search', 'resolve')")
