@@ -9,7 +9,13 @@ description: Reliable iCal calendar parsing for student schedules, exams, and da
 
 Parse iCal (.ics) feeds reliably using only Python standard library — no external dependencies. This makes it safe for cron jobs and long-term use without pip rot.
 
-Default URL: Philipp's KIT Campus calendar (`https://campus.kit.edu/sp/webcal/AOpeOURNuA`). Override via `--url` or `ICAL_URL` env.
+Default URL: Loaded from `ical-calendar/.env` (`ICAL_URL`). Override via `--url` or `ICAL_URL` env.
+
+**Note:** The `.env` file is not tracked in git. Create it locally:
+```bash
+cd ~/.openclaw/skills/ical-calendar
+echo "ICAL_URL=https://campus.kit.edu/sp/webcal/YOUR_TOKEN" > .env
+```
 
 ## Core Script
 

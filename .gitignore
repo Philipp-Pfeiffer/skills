@@ -12,3 +12,7 @@ kami/
 minimax-cli/
 self-improving/
 session-logs/
+
+# Private config files
+.env
+ical-calendar/.env

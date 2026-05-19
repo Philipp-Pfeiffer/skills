@@ -7,9 +7,26 @@ import sys, re, json, urllib.request, urllib.error, os
 from datetime import datetime, timedelta, date
 
 # ------------------------------------------------------------------
-# Config
+# Config — load from .env file or env var, never hardcode secrets
 # ------------------------------------------------------------------
-DEFAULT_ICAL_URL = "https://campus.kit.edu/sp/webcal/KtLyqt0HLK"
+import os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ENV_PATH = os.path.join(SCRIPT_DIR, "..", ".env")
+
+if os.path.exists(ENV_PATH):
+    with open(ENV_PATH, "r") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, val = line.split("=", 1)
+                if key.strip() not in os.environ:
+                    os.environ[key.strip()] = val.strip()
+
+DEFAULT_ICAL_URL = os.environ.get("ICAL_URL", "")
+if not DEFAULT_ICAL_URL:
+    print("Error: ICAL_URL not set. Add it to ical-calendar/.env or export it.", file=sys.stderr)
+    sys.exit(1)
 
 # ------------------------------------------------------------------
 # iCal line unfolding (RFC 5545)
