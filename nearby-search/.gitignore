@@ -1,0 +1,4 @@
+config/serpapi.env
+config/locations.json
+*.pyc
+__pycache__/

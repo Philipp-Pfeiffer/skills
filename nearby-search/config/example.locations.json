@@ -1,0 +1,6 @@
+{
+  "_comment": "Kopiere diese Datei nach locations.json und fülle deine echten Koordinaten ein",
+  "kit": {"lat": 49.009, "lon": 8.418, "label": "KIT Campus Süd"},
+  "home": {"lat": 0.0, "lon": 0.0, "label": "Zuhause"},
+  "arbeit": {"lat": 0.0, "lon": 0.0, "label": "Büro"}
+}

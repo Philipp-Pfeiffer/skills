@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<!-- ==================================================================
+     ONE-PAGER · English · DeepSeek-V3 Architecture Deep-Dive
+     Single A4 executive summary / technical report
+     Build: python3 scripts/build.py deepseek-v3-one-pager
+     Target: exactly 1 page
+     ================================================================== -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DeepSeek-V3: Architecture &amp; Engineering Deep-Dive</title>
+<meta name="author" content="CLIFFFORD">
+<meta name="description" content="DeepSeek-V3 redefined what constraint-driven engineering can achieve: 671B parameters, $5.6M training cost, and innovations in attention, MoE routing, and HPC co-design.">
+<meta name="keywords" content="DeepSeek-V3, MoE, MLA, FP8, DualPipe, Multi-Token Prediction, HPC co-design">
+<meta name="generator" content="Kami">
+<style>
+  /* @font-face { font-family: "JetBrains Mono"; src: url("../fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "JetBrains Mono"; src: url("../fonts/JetBrainsMono.woff2") format("woff2"); font-weight: 500; font-style: normal; } */
+
+  @page {
+    size: A4;
+    margin: 15mm 18mm 15mm 18mm;
+    background: #f5f4ed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --parchment: #f5f4ed;
+    --ivory:     #faf9f5;
+    --sand:      #e8e6dc;
+    --near-black:#141413;
+    --dark-warm: #3d3d3a;
+    --olive:     #504e49;
+    --stone:     #6b6a64;
+    --brand:     #1B365D;
+    --border:    #e8e6dc;
+    --border-soft:#e5e3d8;
+    --tag-bg:    #E4ECF5;
+
+    --serif: Charter, Georgia,
+             Palatino, "Times New Roman", serif;
+    --sans: var(--serif);
+  }
+
+  html, body { background: var(--parchment); }
+
+  @media screen {
+    body { max-width: 210mm; margin: 0 auto; padding: 15mm 18mm; }
+  }
+
+  body {
+    color: var(--near-black);
+    font-family: var(--serif);
+    font-size: 10pt;
+    line-height: 1.45;
+  }
+
+  .serif { font-family: var(--serif); }
+
+  .header {
+    border-left: 2.5pt solid var(--brand);
+    border-radius: 1.5pt;
+    padding-left: 8pt;
+    margin-bottom: 14pt;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20pt;
+  }
+  .title-block { flex: 1; }
+  .eyebrow {
+    font-size: 9pt;
+    color: var(--brand);
+    letter-spacing: 1pt;
+    text-transform: uppercase;
+    margin-bottom: 4pt;
+    font-weight: 500;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: 26pt;
+    font-weight: 500;
+    color: var(--near-black);
+    line-height: 1.12;
+    letter-spacing: -0.3pt;
+    margin-bottom: 5pt;
+  }
+  .subtitle {
+    font-size: 11.5pt;
+    color: var(--olive);
+    line-height: 1.4;
+  }
+  .meta {
+    font-size: 9pt;
+    color: var(--stone);
+    text-align: right;
+    line-height: 1.5;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* METRICS */
+  .metrics {
+    display: flex;
+    gap: 16pt;
+    margin-bottom: 18pt;
+    padding: 4pt 0 6pt 0;
+    border-bottom: 0.3pt dotted var(--border);
+  }
+  .metric {
+    flex: 1;
+    background: transparent;
+    padding: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 5pt;
+    break-inside: avoid;
+  }
+  .metric-value {
+    font-family: var(--serif);
+    font-size: 22pt;
+    font-weight: 500;
+    color: var(--brand);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.3pt;
+  }
+  .metric-label {
+    font-size: 9pt;
+    color: var(--olive);
+    line-height: 1.3;
+  }
+
+  section { margin-bottom: 18pt; break-inside: avoid; }
+  section:last-of-type { margin-bottom: 0; }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 16pt;
+    font-weight: 500;
+    color: var(--near-black);
+    margin-bottom: 6pt;
+  }
+  h2 .sub {
+    font-size: 9pt;
+    color: var(--stone);
+    font-weight: 400;
+    margin-left: 6pt;
+  }
+
+  p { margin-bottom: 6pt; line-height: 1.45; }
+  p:last-child { margin-bottom: 0; }
+
+  .lead {
+    font-size: 12.5pt;
+    line-height: 1.5;
+    color: var(--dark-warm);
+    margin-bottom: 14pt;
+  }
+
+  .hl { color: var(--brand); font-weight: 500; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18pt;
+  }
+
+  ul.dash {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  ul.dash li {
+    position: relative;
+    padding-left: 14pt;
+    margin-bottom: 4pt;
+    line-height: 1.45;
+  }
+  ul.dash li::before {
+    content: "\2013";
+    position: absolute;
+    left: 0;
+    color: var(--brand);
+  }
+
+  .timeline {
+    display: flex;
+    gap: 12pt;
+    margin-top: 6pt;
+  }
+  .tl-step { flex: 1; break-inside: avoid; }
+  .tl-year {
+    font-family: var(--serif);
+    font-size: 11pt;
+    font-weight: 500;
+    color: var(--brand);
+    margin-bottom: 2pt;
+    letter-spacing: 0.3pt;
+    text-transform: uppercase;
+  }
+  .tl-head {
+    font-size: 10pt;
+    font-weight: 500;
+    color: var(--near-black);
+    margin-bottom: 2pt;
+  }
+  .tl-body {
+    font-size: 9pt;
+    color: var(--olive);
+    line-height: 1.45;
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--brand);
+    font-size: 9pt;
+    font-weight: 500;
+    padding: 1pt 6pt;
+    border-radius: 3pt;
+    letter-spacing: 0.4pt;
+    text-transform: uppercase;
+    margin-right: 3pt;
+  }
+
+  /* CALLOUT */
+  .callout {
+    background: transparent;
+    border-left: 1.8pt solid var(--brand);
+    padding: 4pt 0 4pt 14pt;
+    margin: 10pt 0;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    color: var(--olive);
+    break-inside: avoid;
+  }
+  .callout .hl, .callout .em-brand { color: var(--brand); }
+
+  .footer {
+    margin-top: 18pt;
+    padding-top: 6pt;
+    border-top: 0.3pt dotted var(--border);
+    font-size: 9pt;
+    color: var(--stone);
+    display: flex;
+    justify-content: space-between;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.3pt;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="title-block">
+    <div class="eyebrow">Technical Report · Executive Summary</div>
+    <h1>DeepSeek-V3:<br>Constraint-Driven Engineering at Scale</h1>
+    <div class="subtitle">How 671B parameters were trained for $5.6M — and why the architecture matters beyond the headline.</div>
+  </div>
+  <div class="meta">
+    CLIFFFORD<br>
+    2026.04.25<br>
+    v1.0 · Internal
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric">
+    <div class="metric-value">671B</div>
+    <div class="metric-label">Total params<br><span class="hl">37B active</span></div>
+  </div>
+  <div class="metric">
+    <div class="metric-value">$5.6M</div>
+    <div class="metric-label">Training cost<br><span class="hl">vs. $100M+ rivals</span></div>
+  </div>
+  <div class="metric">
+    <div class="metric-value">2,048</div>
+    <div class="metric-label">H800 GPUs<br><span class="hl">&lt;2 months, zero rollbacks</span></div>
+  </div>
+</div>
+
+<p class="lead">
+  DeepSeek-V3 is a <span class="hl">proof that constraint drives innovation</span>. Trained on export-controlled H800 GPUs with reduced interconnect, the team had no option to brute-force scale. Four architectural breakthroughs followed — none of which Western labs with unlimited H100 clusters ever bothered to discover.
+</p>
+
+<div class="two-col">
+  <section>
+    <h2>Attention &amp; Memory</h2>
+    <p><strong>Multi-Head Latent Attention (MLA)</strong> replaces the standard KV-cache with a compressed low-rank latent vector. Only this vector plus a small decoupled RoPE component are cached — dramatically reducing inference memory without performance loss.</p>
+    <ul class="dash">
+      <li>Full K/V pairs per head are <span class="hl">not stored</span> — latent compression handles it.</li>
+      <li>Equivalent performance to standard Multi-Head Attention on all benchmarks.</li>
+      <li>Enables long-context inference at 128K tokens without memory explosion.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>MoE Routing</h2>
+    <p><strong>Auxiliary-Loss-Free Load Balancing</strong> solves the classic MoE problem: auxiliary losses corrupt the training signal. Bias terms added to routing scores are adjusted per-step to balance load, while the computation gating stays unbiased.</p>
+    <ul class="dash">
+      <li>1 shared expert + 256 routed experts, <span class="hl">8 active per token</span>.</li>
+      <li>Bias-only routing: underloaded experts get boosted, overloaded get penalized.</li>
+      <li>Ablations confirm <span class="hl">superior quality</span> vs. auxiliary-loss approaches.</li>
+    </ul>
+  </section>
+</div>
+
+<section>
+  <h2>Infrastructure &amp; Precision<span class="sub">HPC co-design at the hardware level</span></h2>
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="tl-year">FP8 Training</div>
+      <div class="tl-head">First successful 671B-scale FP8</div>
+      <div class="tl-body">Tile-wise + block-wise quantization, CUDA Core promotion every 128 elements. Built around H800's limited 14-bit FP8 accumulation.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-year">DualPipe</div>
+      <div class="tl-head">Near-zero comm overhead</div>
+      <div class="tl-body">Forward/backward interleaved from both pipeline ends. GPU SMs manually partitioned between compute and communication. Custom PTX for cross-node kernels.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-year">MTP</div>
+      <div class="tl-head">Multi-Token Prediction</div>
+      <div class="tl-body">Predicts n+1, n+2, n+3 tokens per position, densifying training signal. Inference: discard for zero overhead, or use for speculative decoding at <span class="hl">1.8x TPS</span>.</div>
+    </div>
+  </div>
+</section>
+
+<div class="callout">
+  <strong>The real lesson is not the model — it is the methodology.</strong> DeepSeek's $5.6M cost is evidence that the field has left massive efficiency gains on the table because brute force was always cheaper than ingenuity. When hardware access is constrained, optimization becomes architecture.
+</div>
+
+<div class="footer">
+  <span>INTERNAL · For discussion only</span>
+  <span>Sources: arXiv:2412.19437, DeepSeek-AI Technical Report, Dec 2024</span>
+</div>
+
+</body>
+</html>
