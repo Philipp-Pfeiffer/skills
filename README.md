@@ -6,6 +6,7 @@ Custom skills for [OpenClaw](https://openclaw.ai) / CLIFFFORD.
 
 | Skill | Description |
 |-------|-------------|
+| [autobahn](autobahn/) | German highway traffic, roadworks, warnings, webcams, charging stations |
 | [bahn](bahn/) | Deutsche Bahn connections, delays, tickets via db-vendo-client |
 | [dwd-weather](dwd-weather/) | German weather forecasts & warnings via DWD (bund.dev) API |
 | [excel-xlsx](excel-xlsx/) | Create, inspect, and edit Microsoft Excel workbooks and XLSX files |
