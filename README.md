@@ -25,6 +25,7 @@ Custom skills for [OpenClaw](https://openclaw.ai) / CLIFFFORD.
 | [skill-smith](skill-smith/) | Guide for creating effective skills for OpenClaw agents |
 | [source-suche](source-suche/) | Search archived sources (Twitter, articles, threads) via QMD |
 | [word-docx](word-docx/) | Create, inspect, and edit Microsoft Word documents and DOCX files |
+| [x-to-markdown](x-to-markdown/) | Convert X (Twitter) posts and articles to Markdown via FxTwitter |
 
 ## Setup
 

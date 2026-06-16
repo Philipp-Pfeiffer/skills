@@ -1,0 +1,3 @@
+# No third-party dependencies required.
+# Uses only the Python standard library (urllib, json, pathlib, argparse, etc.).
+# Python 3.10+ is required for the type hint syntax used in the script.

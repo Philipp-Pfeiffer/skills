@@ -1,0 +1,54 @@
+{
+  "name": "x-to-markdown",
+  "description": "Convert X (Twitter) posts and long-form X Articles to Markdown. Extracts full article text with headings, lists, code blocks, cover images, and inline media using the free FxTwitter API. No API key or X login required.",
+  "commands": [
+    {
+      "command": "extract_to_stdout",
+      "description": "Convert an X post or article URL to Markdown and print it to stdout",
+      "parameters": [
+        {
+          "name": "url",
+          "type": "string",
+          "description": "X/Twitter URL, e.g. https://x.com/user/status/123",
+          "required": true
+        }
+      ],
+      "examples": [
+        "Extract https://x.com/akshay_pachaar/status/2064051835636498924 to Markdown"
+      ]
+    },
+    {
+      "command": "extract_to_file",
+      "description": "Convert an X post or article URL to Markdown and save it to a file",
+      "parameters": [
+        {
+          "name": "url",
+          "type": "string",
+          "description": "X/Twitter URL",
+          "required": true
+        },
+        {
+          "name": "output",
+          "type": "string",
+          "description": "Path to the output Markdown file",
+          "required": true
+        },
+        {
+          "name": "download_media",
+          "type": "boolean",
+          "description": "Download images to an images/ folder next to the output file",
+          "default": false
+        }
+      ],
+      "examples": [
+        "Save https://x.com/user/status/123 as article.md with images"
+      ]
+    }
+  ],
+  "scripts": {
+    "extract": "scripts/x_to_markdown.py"
+  },
+  "api": {
+    "primary": "https://api.fxtwitter.com"
+  }
+}
