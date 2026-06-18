@@ -22,6 +22,7 @@ Get weather forecasts and warnings for Germany via the Deutscher Wetterdienst (D
 - "Will it rain this weekend in Karlsruhe?"
 - "Any weather warnings?"
 - "Temperature forecast for Berlin"
+- "Mach mir eine Wetter-Grafik" / "Wetter-Chart" / "Wettervorhersage als Bild"
 
 ❌ **DON'T use when:**
 - Locations outside Germany → use wttr.in/Open-Meteo
@@ -29,9 +30,7 @@ Get weather forecasts and warnings for Germany via the Deutscher Wetterdienst (D
 
 ## Commands
 
-### Forecast
-
-You can pass a **city name** or a **station ID**:
+### Forecast (text)
 
 ```bash
 # By city name — auto-resolved to nearest MOSMIX station
@@ -46,6 +45,31 @@ python3 dwd_weather.py forecast G005
 # With custom hourly window
 python3 dwd_weather.py forecast Karlsruhe --hourly 24
 ```
+
+### Forecast Chart (SVG → PNG)
+
+Tufte-style Wetter-Visualisierung mit subtilen SVG-Pattern-Hintergründen:
+
+```bash
+# Standard: 5-Tage-Chart als PNG
+python3 dwd_weather_chart.py 10865 --name "Karlsruhe" --out ~/wetter.png
+
+# Nur SVG (ohne rsvg-convert)
+python3 dwd_weather_chart.py 10865 --name "Karlsruhe" --out /tmp/chart.svg
+```
+
+**Design-Prinzipien (Tufte-konform):**
+- Minimal ink — weißer Hintergrund, keine Gridlines, keine Borders außer feinem Rahmen
+- Subtile Wetter-Patterns (3–8% Opazität):
+  - ☀ Sonnig: gestreute Kreise (`#d4a574`)
+  - ☁ Bewölkt: horizontale Linien (`#8a9aab`)
+  - 🌧 Regen: diagonale Striche (`#6b8299`)
+  - ⛈ Gewitter: dichte diagonale Striche (`#4a5568`)
+- Temperatur-Range als horizontaler Balken (Hintergrund = Gesamtskala 5–35°C, roter Bereich = Min–Max)
+- Regenwahrscheinlichkeit als dünner Fortschrittsbalken
+- Direkte Labels statt Legende
+
+**Abhängigkeit:** `rsvg-convert` (Paket `librsvg` bzw. `rsvg-convert` via `extra/librsvg` auf Arch)
 
 ### Warnings
 

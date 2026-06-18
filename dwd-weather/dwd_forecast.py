@@ -135,12 +135,16 @@ def format_forecast(data: dict, hourly_count: int = 12) -> str:
     """Format forecast data into a human-readable string."""
     if "error" in data:
         return f"Error: {data['error']}"
-    
+
+    from datetime import datetime, timezone
+
     lines = []
     lines.append(f"📍 Station: {data['station_id']}")
-    lines.append(f"🕐 Forecast from: {data['forecast_start'][:16]}")
+    forecast_start = data.get('forecast_start', '')
+    if forecast_start:
+        lines.append(f"🕐 Forecast issued: {forecast_start[:16]} UTC")
     lines.append("")
-    
+
     # Daily summary
     lines.append("📅 Daily Forecast:")
     for day in data["daily"][:10]:
@@ -148,24 +152,38 @@ def format_forecast(data: dict, hourly_count: int = 12) -> str:
         tmin = day["temp_min_c"]
         tmax = day["temp_max_c"]
         rain = day["precipitation_mm"]
-        rain_str = f" | 🌧️ {rain:.1f}mm" if rain > 0 else ""
+        rain_str = f" | 🌧️ {rain:.1f}mm" if rain and rain > 0 else ""
         lines.append(f"  {date}: {tmin:.1f}° – {tmax:.1f}°C{rain_str}")
-    
+
     lines.append("")
     # Filter to hours that actually have data (skip sentinel-filled early hours)
     valid_hourly = [h for h in data["hourly"] if h["temperature_c"] is not None]
     show_count = min(hourly_count, len(valid_hourly))
-    lines.append(f"⏰ Next {show_count} Hours:")
+
+    # Build header with absolute local times (CEST = UTC+2)
+    forecast_start_dt = datetime.fromisoformat(data.get('forecast_start', '1970-01-01T00:00:00+00:00'))
+    start_local = forecast_start_dt.astimezone(datetime.now().astimezone().tzinfo)
+
+    lines.append(f"⏰ Hourly Forecast (next {show_count} hours):")
     for h in valid_hourly[:hourly_count]:
+        # Calculate absolute local time
+        hour_dt = forecast_start_dt + __import__('datetime').timedelta(hours=h['hour'])
+        local_dt = hour_dt.astimezone(__import__('datetime').timezone(__import__('datetime').timedelta(hours=2)))
+        time_str = local_dt.strftime("%a %H:%M")
+
         temp = h["temperature_c"]
         rain = h["rain_mm_h"]
         hum = h["humidity_pct"]
         rain_str = ""
         if rain is not None and rain > 0:
             rain_str = f" | 🌧️ {rain:.1f}mm/h"
-        hum_str = f" | 💧 {hum:.0f}%" if hum is not None else ""
-        lines.append(f"  +{h['hour']:2d}h: {temp:5.1f}°C{hum_str}{rain_str}")
-    
+        hum_str = f" | 💧 {hum:.0f}% RH" if hum is not None else ""
+        lines.append(f"  {time_str}: {temp:5.1f}°C{hum_str}{rain_str}")
+
+    lines.append("")
+    lines.append("ℹ️  💧 = relative Luftfeuchtigkeit (RH), nicht Regenwahrscheinlichkeit.")
+    lines.append("   🌧️ = gemessener/geschatzter Niederschlag in mm/h.")
+
     return "\n".join(lines)
 
 def format_warnings(data: dict, warning_type: str) -> str:
