@@ -7,12 +7,28 @@ description: "Collect and archive articles, Twitter/X posts, threads, and web so
 
 Archive URLs into Notion Reference Library + local markdown sources.
 
+## Required Skills
+
+This skill depends on **notion-cli** (`~/.openclaw/skills/notion-cli/SKILL.md`). Read it before performing any Notion operations. All Notion API calls must use the `ntn` CLI or the documented curl patterns from that skill.
+
 ## Workflow
 
 1. **Extract** — Use `browser` or `web_fetch` to capture full article/post content
 2. **Parse** — Extract title, author, core insight, tags/topics
 3. **Local** — Save as markdown to `~/.openclaw/workspace/sources/<type>/`
-4. **Notion** — Create database entry via `ntn` CLI with all metadata
+4. **Notion** — Create database entry via `ntn` CLI **AND populate the page body with the full article text and images at the correct positions**
+
+## Image Handling Rule
+
+When archiving sources with images (Twitter/X posts, articles with screenshots, diagrams, etc.):
+
+- **ALWAYS extract the original image URLs** from the source (e.g., via FxTwitter JSON, `media_entities`, `original_img_url`)
+- **NEVER** insert placeholder text like "[Image] — see local archive" or "[Image: description]"
+- Embed images as actual `image` blocks with `external` URLs pointing to the original source
+- Images must be placed at the **correct position** in the text flow (where they appeared in the original article)
+- If original URLs expire: upload local copies via `ntn files create` and attach as `file_upload` blocks
+
+This is non-negotiable. Placeholder text for images is a bug, not a feature.
 
 ## Source Types
 
@@ -39,8 +55,10 @@ When archiving sources, the **complete original text** must always be preserved 
 
 - A brief summary or "Kernpunkte" section at the top is acceptable and useful
 - But the full, unabridged original text must follow — no truncation, no "see original" placeholders
-- Local markdown: frontmatter + optional summary + full original text
-- Notion: optional summary blocks + full original text as page content
+- **Local markdown:** frontmatter + optional summary + full original text
+- **Notion:** The page body MUST contain the full original text as block content (paragraphs, headings, images). The database properties alone are NOT sufficient.
+
+**Critical:** Notion entries are database rows with page content. Creating only the database row (properties) without filling the page body is incomplete. Always append the article text and images as children blocks after creating the page. **Images must be embedded as actual image blocks at their original positions, never as placeholder text.**
 
 If extraction fails, mark as "needs extraction" rather than storing a summary alone.
 

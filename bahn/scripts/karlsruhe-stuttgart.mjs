@@ -1,8 +1,19 @@
+/**
+ * Check Karlsruhe → Stuttgart departures with delays
+ * 
+ * FIXED: Uses realistic user-agent to avoid 403 blocks
+ * FIXED: Falls back to dbnav profile if db profile fails
+ */
+
 import { createClient } from 'db-vendo-client';
 import { profile as dbProfile } from 'db-vendo-client/p/db/index.js';
+import { profile as dbnavProfile } from 'db-vendo-client/p/dbnav/index.js';
 
-async function checkRoute() {
-  const client = createClient(dbProfile, 'clawdbot-bahn-skill');
+// Realistic user-agent to avoid API blocks
+const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+
+async function checkKarlsruheStuttgart(profile, profileName) {
+  const client = createClient(profile, USER_AGENT);
 
   const { departures } = await client.departures('8000191', {
     when: new Date(),
@@ -10,7 +21,7 @@ async function checkRoute() {
     remarks: true
   });
 
-  console.log(`Gefunden: ${departures.length} Abfahrten total\n`);
+  console.log(`Gefunden: ${departures.length} Abfahrten total (${profileName})\n`);
 
   // Zeige alle Richtungen zur Diagnose
   console.log('--- Alle Richtungen ---');
@@ -57,4 +68,19 @@ async function checkRoute() {
   });
 }
 
-checkRoute().catch(console.error);
+async function main() {
+  try {
+    await checkKarlsruheStuttgart(dbProfile, 'db');
+  } catch (err) {
+    console.log(`db profile failed: ${err.message}`);
+    console.log('Trying dbnav profile...\n');
+    try {
+      await checkKarlsruheStuttgart(dbnavProfile, 'dbnav');
+    } catch (err2) {
+      console.error(`Both profiles failed: ${err2.message}`);
+      process.exit(1);
+    }
+  }
+}
+
+main().catch(console.error);

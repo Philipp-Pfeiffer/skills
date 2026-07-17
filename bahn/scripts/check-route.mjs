@@ -1,30 +1,36 @@
 /**
- * Example: Check departures from origin to destination
+ * Check departures from origin to destination
  * Demonstrates filtering for specific directions
+ * 
+ * FIXED: Uses realistic user-agent to avoid 403 blocks
+ * FIXED: Falls back to dbnav profile if db profile fails
  */
 
 import { createClient } from 'db-vendo-client';
 import { profile as dbProfile } from 'db-vendo-client/p/db/index.js';
+import { profile as dbnavProfile } from 'db-vendo-client/p/dbnav/index.js';
 
-async function checkRoute() {
-  const client = createClient(dbProfile, 'clawdbot-bahn-skill');
+// Realistic user-agent to avoid API blocks
+const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
-  console.log(`\n🚄 Berlin Hbf → München Hbf`);
+async function checkRouteWithProfile(profile, profileName, fromId, toName) {
+  const client = createClient(profile, USER_AGENT);
+
+  console.log(`\n🚄 ${toName} (via ${profileName})`);
   console.log(`Time: ${new Date().toLocaleString('de-DE')}\n`);
 
-  const { departures } = await client.departures('8098160', { // Berlin Hbf
+  const { departures } = await client.departures(fromId, {
     when: new Date(),
     duration: 120,
     remarks: true
   });
 
-  // Filter for trains going to München
+  // Filter for trains going to destination
   const toDestination = departures.filter(dep =>
-    dep.direction?.toLowerCase().includes('münchen') ||
-    dep.direction?.toLowerCase().includes('munich')
+    dep.direction?.toLowerCase().includes(toName.toLowerCase())
   );
 
-  console.log(`Found ${toDestination.length} direct connections to München:\n`);
+  console.log(`Found ${toDestination.length} direct connections to ${toName}:\n`);
 
   if (toDestination.length === 0) {
     console.log('No direct connections found. Showing all departures:\n');
@@ -56,7 +62,7 @@ async function checkRoute() {
                    '⚠️  Delayed';
 
     console.log(`${i + 1}. ${dep.line?.name || dep.line?.id || '?'}`);
-    console.log(`   → München Hbf`);
+    console.log(`   → ${toName}`);
     console.log(`   🕐 ${dep.plannedWhen?.toLocaleString('de-DE', { hour: '2-digit', minute: '2-digit', weekday: 'short', day: '2-digit', month: '2-digit' })}`);
     console.log(`   ${status}`);
 
@@ -71,6 +77,21 @@ async function checkRoute() {
 
     console.log();
   });
+}
+
+async function checkRoute() {
+  try {
+    await checkRouteWithProfile(dbProfile, 'db', '8098160', 'München');
+  } catch (err) {
+    console.log(`db profile failed: ${err.message}`);
+    console.log('Trying dbnav profile...\n');
+    try {
+      await checkRouteWithProfile(dbnavProfile, 'dbnav', '8098160', 'München');
+    } catch (err2) {
+      console.error(`Both profiles failed: ${err2.message}`);
+      process.exit(1);
+    }
+  }
 }
 
 checkRoute().catch(console.error);

@@ -1,15 +1,22 @@
 /**
- * Example: How to check if your train/bus is on time
+ * Check if your train/bus is on time
  * Using Deutsche Bahn API for real-time delay data
+ * 
+ * FIXED: Uses realistic user-agent to avoid 403 blocks
+ * FIXED: Falls back to dbnav profile if db profile fails
  */
 
 import { createClient } from 'db-vendo-client';
 import { profile as dbProfile } from 'db-vendo-client/p/db/index.js';
+import { profile as dbnavProfile } from 'db-vendo-client/p/dbnav/index.js';
 
-async function checkDelays(stationId, stationName) {
-  const client = createClient(dbProfile, 'clawdbot-bahn-skill');
+// Realistic user-agent to avoid API blocks
+const USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
 
-  console.log(`\n🚄 Checking departures for ${stationName}...`);
+async function checkDelaysWithProfile(profile, profileName, stationId, stationName) {
+  const client = createClient(profile, USER_AGENT);
+
+  console.log(`\n🚄 Checking departures for ${stationName} (${profileName})...`);
   console.log(`Station ID: ${stationId}`);
   console.log(`Time: ${new Date().toLocaleString('de-DE')}\n`);
 
@@ -49,6 +56,20 @@ async function checkDelays(stationId, stationName) {
 
     console.log();
   });
+}
+
+async function checkDelays(stationId, stationName) {
+  try {
+    await checkDelaysWithProfile(dbProfile, 'db', stationId, stationName);
+  } catch (err) {
+    console.log(`db profile failed: ${err.message}`);
+    console.log('Trying dbnav profile...\n');
+    try {
+      await checkDelaysWithProfile(dbnavProfile, 'dbnav', stationId, stationName);
+    } catch (err2) {
+      console.error(`Both profiles failed: ${err2.message}`);
+    }
+  }
 }
 
 async function main() {
